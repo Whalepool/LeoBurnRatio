@@ -3,6 +3,8 @@ from pprint import pprint
 from datetime import datetime
 import talib as ta
 
+ema_period = 50
+rolling_ema_lookback = 20
 dataset = []
 node = []
 counter = 0 
@@ -55,8 +57,8 @@ btc_candles['btc_usd_volume'] = btc_candles['btc_volume'] * btc_candles['btc_ope
 
 
 output = pd.concat([output, btc_candles], axis=1)
-output['burn_amount_usd_EMA'] = ta.EMA(output['burn_amount_usd'].ffill(), 8)
-output['btc_usd_volume_EMA'] = ta.EMA(output['btc_usd_volume'], 8)
+output['burn_amount_usd_EMA'] = ta.EMA(output['burn_amount_usd'].ffill(), ema_period)
+output['btc_usd_volume_EMA'] = ta.EMA(output['btc_usd_volume'], ema_period)
 
 
 
@@ -73,8 +75,8 @@ from matplotlib.ticker import ScalarFormatter, NullFormatter
 
 output['m2dates'] = output.index.map(mdates.date2num)
 number_correlation = output['burn_amount_usd_EMA'].corr(output['btc_usd_volume_EMA'])
-output['corr'] = output['burn_amount_usd_EMA'].rolling(10).corr(output['btc_usd_volume_EMA'])
-output['corr_smoothed'] = ta.EMA(output['corr'], 8)
+output['corr'] = output['burn_amount_usd_EMA'].rolling(rolling_ema_lookback).corr(output['btc_usd_volume_EMA'])
+output['corr_smoothed'] = ta.EMA(output['corr'], ema_period)
 output = output['2019-06-01 00:00':]
 
 pprint(output.to_csv('output.csv', encoding='utf-8'))
@@ -97,26 +99,26 @@ ax1.xaxis_date()
 fig.autofmt_xdate()
 
 ax1.plot(output.index.values, output['burn_amount_usd_EMA'], color='blue') 
-ax1.set_xlabel("8 EMA USD LEO Burn amount", fontsize=10)
+ax1.set_xlabel(str(ema_period)+" EMA USD LEO Burn amount", fontsize=10)
 ax1.tick_params(axis='y', colors='blue')
 
 ax1t = ax1.twinx()
 ax1t.plot(output.index.values, output['btc_usd_volume_EMA'], color='red')    
 ax1t.yaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
-ax1t.set_xlabel("8 EMA Smoothed USD Normalised BTCUSD volume", fontsize=10)
+ax1t.set_xlabel(str(ema_period)+" EMA Smoothed USD Normalised BTCUSD volume", fontsize=10)
 ax1t.tick_params(axis='y', colors='red')
 
 ax2t = ax1.twinx()
 ax2t.plot( output.index.values, output['corr_smoothed'], color='orange')
 ax2t.spines["right"].set_position(("axes", 1.05))
-ax2t.set_xlabel("Rolling 10 day window correlation", fontsize=10)
+ax2t.set_xlabel("Rolling "+str(rolling_ema_lookback)+" day window correlation", fontsize=10)
 ax2t.tick_params(axis='y', colors='orange')
 
 
 h = [
-  mpatches.Patch(color='blue', label='USD normalised LEO burn amount'),
-  mpatches.Patch(color='red', label='USD normalised BTCUSD volume'),
-  mpatches.Patch(color='orange', label='Rolling 10 day window correlation'),
+  mpatches.Patch(color='blue', label=str(ema_period)+' EMA USD normalised LEO burn amount'),
+  mpatches.Patch(color='red', label=str(ema_period)+' EMA USD normalised BTCUSD volume'),
+  mpatches.Patch(color='orange', label='Rolling '+str(rolling_ema_lookback)+' day window correlation'),
 ]
 
 ax1.legend(handles=h, loc='upper left')
