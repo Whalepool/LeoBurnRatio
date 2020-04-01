@@ -18,6 +18,6 @@ For more info join [@whalepoolbtc](https://t.me/whalepoolbtc) on telegram
 
 ## Example output 
 
-![Example output]https://i.imgur.com/Jhbb2dd.png)
+![Example output](https://i.imgur.com/Jhbb2dd.png)
 
 
